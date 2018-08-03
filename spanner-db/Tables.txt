@@ -1,0 +1,8 @@
+CREATE TABLE Builds (
+	BuildID STRING(36) NOT NULL,
+	AccountID INT64 NOT NULL,
+	CurrentState INT64 NOT NULL,
+	CurrentStateTimestamp TIMESTAMP NOT NULL,
+	SourceUrl STRING(MAX) NOT NULL,
+	TriggerReason STRING(MAX),
+) PRIMARY KEY (BuildID)
