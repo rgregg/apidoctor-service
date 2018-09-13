@@ -1,0 +1,6 @@
+[submodule "service-runner/apidoctor"]
+	path = service-runner/apidoctor
+	url = git@github.com:rgregg/apidoctor.git
+[submodule "opensource/apidoctor-cs"]
+	path = opensource/apidoctor-cs
+	url = https://github.com/rgregg/apidoctor.git
