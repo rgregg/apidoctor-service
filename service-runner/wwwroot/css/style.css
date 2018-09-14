@@ -1,0 +1,18 @@
+.errorCodeHeader {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 2.0em;
+}
+
+.errorSourceHeader {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 1.4em;
+    margin-top: 1.4em;
+}
+
+.errorItem {
+    font-weight: normal;
+    font-size: 1.0em;
+    margin-left: 2.4em;
+}

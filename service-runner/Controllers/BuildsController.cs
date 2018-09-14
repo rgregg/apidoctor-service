@@ -31,16 +31,18 @@ namespace service_runner.Controllers
 
         // POST api/builds
         [HttpPost]
-        public string Post(BuildRequestModel request)
+        public ActionResult Post(BuildRequestModel request)
         {
+            var requestStart = DateTime.UtcNow;
+
             if (request == null)
             {
-                return "Error: No build request was detected.";
+                return BadRequest(new { error = "No build request was detected."});
             }
 
             if (String.IsNullOrEmpty(request.GitUrl))
             {
-                return "Error: No URL was received.";
+                return BadRequest(new { error = "No Repo URL was received."});
             }
 
             // See if we can clone the URL provided
@@ -56,16 +58,9 @@ namespace service_runner.Controllers
 
             Console.WriteLine($"Detected {validator.Issues.IssuesInCurrentScope} issues in the documentation.");
 
-            var output = new StringBuilder();
-            foreach(var error in validator.Issues.Issues) 
-            {
-                if (error.Code != ApiDoctor.Validation.Error.ValidationErrorCode.Unknown)
-                {
-                    string message = string.Format("{1}: {0}", error.Message, error.Code);
-                    output.Append(message);
-                    output.Append("\n");
-                }
-            }
+            var outputResults = from e in validator.Issues.Issues
+                                where e.Code != ApiDoctor.Validation.Error.ValidationErrorCode.Unknown
+                                select new { e.Code, e.Message, e.Source };
 
             try 
             {
@@ -78,7 +73,15 @@ namespace service_runner.Controllers
                 Console.WriteLine($"Unable to clean up local files: {ex.Message}");
             }
 
-            return $"Results for {request.GitUrl} on branch {request.Branch}:\n\n{output.ToString()}";
+            var requestCompleted = DateTime.UtcNow;
+            var duration = requestCompleted.Subtract(requestStart);
+
+            return Ok(new {
+                contentIssues = outputResults,
+                duration = duration,
+                branch = request.Branch,
+                repo = request.GitUrl
+            });
         }
 
 

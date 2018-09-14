@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+         <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/style.css">
+        <title>Markdown Documentation Validator</title>
+    </head>
+    <body>
+        <div class="container">
+            <div>&nbsp;</div>
+            <h3>Markdown Documentation Validator</h3>
+            <p>This tool allows you to verify your markdown documentation meets a minimum set of requirements for proper API documentation. To get started, submit your publicly
+                accessible GIT URL below.
+            </p>
+            <div class="input-group mb-3" id="groupSubmitValidation">
+                <input type="text" class="form-control" placeholder="Git URL" aria-label="Recipient's username" aria-describedby="button-addon2" id="gitUrl">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="button" id="button-addon2">Validate</button>
+                </div>
+            </div>
+            
+            <div id="postSubmitOutput" style="display: none">
+                <p>Processing your Git repo... <span id="gitUrlVisible"></span></p>
+            </div>
+
+            <div>&nbsp;</div>
+        </div>
+    </body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script>
+        $("#button-addon2").click(e => {
+            let url = $("#gitUrl").val();
+            if (url.length == 0) {
+                window.alert("Please enter a valid Git URL and then click Validate.");
+                return;
+            }
+            
+            $("#gitUrlVisible").text(url);
+            $("#groupSubmitValidation").hide();
+            $("#postSubmitOutput").show();
+
+            $.ajax("/api/builds", {
+                cache: false,
+                data: { gitUrl: url },
+                dataType: "json",
+                method: "POST",
+                success: function(data, status, xhr) {
+                    
+                    let resultsContainer = $("#postSubmitOutput");
+                    resultsContainer.empty();
+                    resultsContainer.append("<div>URL <code>" + data.repo + "</code></div>");
+                    resultsContainer.append("<div>Branch <code>" + data.branch + "</code></div>");
+                    resultsContainer.append("<div>Took <code>" + data.duration + "</code> to process.</div>");
+
+                    let decode = function(code) {
+                        switch(code) {
+                            case 50:
+                                return "Orphaned Page";
+                            case 30:
+                                return "Broken Link"; 
+                        }
+                        return code;
+                    }
+
+                    let results = [];
+                    let lastCode = -1, lastSource = null;
+                    let lastCodeHeader = null, lastSourceHeader = null;
+                    for(i = 0; i < data.contentIssues.length; i++) {
+                        var issue = data.contentIssues[i];
+                        if (!lastCodeHeader || issue.code != lastCode) {
+                            // Create a new header
+                            lastCodeHeader = resultsContainer.append("<div class=\"errorCodeHeader\">Error: " + decode(issue.code) + "</div>" );
+                            lastCode = issue.code;
+                        }
+                        if (!lastSourceHeader || issue.source != lastSource) {
+                            lastSourceHeader = lastCodeHeader.append("<div class=\"errorSourceHeader\">File: " + issue.source + "</div>");
+                            lastSource = issue.source;
+                        }
+                        lastSourceHeader.append("<div class=\"errorItem\">" + issue.message + "</div>");
+                    }
+
+                    // data.contentIssues.forEach(value => {
+                    //     results.push("<div class=\"issue\">" + decode(value.code) + " " + value.source + ": " + value.message + "</div>");
+                    // })
+                    // resultsContainer.append(results);
+                },
+                error: function(xhr, status, error) {
+                    window.alert("An error occurred while processing: " + error);
+                }
+            });
+        })
+    </script>
+</html>

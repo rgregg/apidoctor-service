@@ -43,6 +43,7 @@ namespace service_runner
             // app.UseHttpsRedirection();
             app.UseMvc();
             app.UseStaticFiles();
+            app.UseDefaultFiles();
         }
     }
 }
