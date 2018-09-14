@@ -24,10 +24,7 @@
                 </div>
             </div>
             
-            <div id="postSubmitOutput" style="display: none">
-                <p>Processing your Git repo... <span id="gitUrlVisible"></span></p>
-            </div>
-
+            <div id="postSubmitOutput"></div>
             <div>&nbsp;</div>
         </div>
     </body>
@@ -42,8 +39,10 @@
                 return;
             }
             
-            $("#gitUrlVisible").text(url);
-            $("#groupSubmitValidation").hide();
+            let resultsContainer = $("#postSubmitOutput");
+            resultsContainer.empty();
+            resultsContainer.append("<p>Processing your Git repo... " + url + "</p>");
+
             $("#postSubmitOutput").show();
 
             $.ajax("/api/builds", {
